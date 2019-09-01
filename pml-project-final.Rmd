@@ -167,11 +167,11 @@ The process followed the following steps for predicting the outcome:
 1. Define error rate.
 2. Split training data into training and test data sets.
 3. On the training data set pick relevant features. 
-4. On the training set pick prediciton function.
-5. Apply prediction funciton on the training data set.
-6. Apply the prediciton on validaiton data set.
+4. On the training set pick prediction function.
+5. Apply prediction function on the training data set.
+6. Apply the prediction on validation data set.
 
-The acceptable error rate for this prediction is less than 1 percent to make prediction 99 percentile correct. The cross validation is performed by spliting the given training data set into training/test sets. The model is created on the training set and evaluated on the test set. The cross validation process will be repeated and average of the estimated errors will be calculated. The cross validation is used for picking variables to include in a model,type of predicion to use and the parameters in the prediction function. The cross validation also compares predictors.
+The acceptable error rate for this prediction is less than 1 percent to make prediction 99 percentile correct. The cross validation is performed by splitting the given training data set into training/test sets. The model is created on the training set and evaluated on the test set. The cross-validation process will be repeated and average of the estimated errors will be calculated. The cross validation is used for picking variables to include in a model, type of prediction to use and the parameters in the prediction function. The cross validation also compares predictors.
 
 The prediction considered the following three approaches:
 
@@ -194,7 +194,7 @@ trnames<-names(trnDat)
 
 ```
 
-The manual observation of total predictors it seems the features with total_accel prefix for all the accelrormetres will be a good predictors. The following feature plot and density plot shows ourcome classe versus total_accel predictors. 
+The manual observation of total predictors it seems the features with total_accel prefix for all the accelerometers will be a good predictor. The following feature plot and density plot shows our come classe versus total_accel predictors. 
 
 ```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
 totl<-grepl("total_accel",trnames)
@@ -216,9 +216,9 @@ featurePlot(x=training[, fnTotal], y=training$classe,plot="density",
 ```
 
 
-The total_accel_arm and total_accel_forearm featurs shows better distribution curve compared to all other features.
+The total_accel_arm and total_accel_forearm features shows better distribution curve compared to all other features.
 
-The following feature plot and density plot shows ourcome classe versus top 5 predictors that recursive feature elimination process selected. 
+The following feature plot and density plot shows outcome classe versus top 5 predictors that recursive feature elimination process selected. 
 
 ```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
 rfeTop5<-c("yaw_belt", "magnet_dumbbell_z", "pitch_belt", "magnet_dumbbell_y", "pitch_forearm")
@@ -244,7 +244,7 @@ The pitch_forearm feature graph also shows better distribution curve.
 
 ##Prediction with Classification tree
 
-The prediction with classification tree gives better performance in nonlinear settings. Iteratively splits variables into groups,evaluates homogeneity  within each group and splits again if necessary
+The prediction with classification tree gives better performance in nonlinear settings. Iteratively splits variables into groups, evaluates homogeneity within each group and splits again if necessary
 
 The following confusion matrix and plot shows the prediction with classification tree method.
 
@@ -265,7 +265,7 @@ fancyRpartPlot(modelCLT$finalModel)
 
 ```
 
-The accuray is 0.48 (48%) and out of sample error is .52(52%). So the out of sample rate is so high. 
+The accuracy is 0.48 (48%) and out of sample error is .52(52%). So, the out of sample rate is so high. 
 
 The fancy plot shows the classification based on variables. 
 
@@ -273,7 +273,7 @@ The fancy plot shows the classification based on variables.
 
 Accuracy will be good with Random Forest. Bootstrapping is performed at each split and multiple trees will be created to decide the final outcome. 
 
-The following confusion matrix and plot shows the prediction with random forest  method.
+The following confusion matrix and plot shows the prediction with random forest method.
 
 ```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
 
@@ -290,12 +290,12 @@ confMatRF
 
 ```
 
-The accuray is 0.99 (99%) and out of sample error is .01 (1%). The out of sample error rate is 1%
+The accuracy is 0.99 (99%) and out of sample error is .01 (1%). The out of sample error rate is 1%
 
 
 ## Boosting with trees (GBM)
 
-By combining the weak predictods strong predictor will be derived.
+By combining the weak predictors strong predictor will be derived.
 
 The following confusion matrix and plot shows the prediction with boosting with tree (GBM) method
 
@@ -312,10 +312,10 @@ confMatGBM
 
 ```
 
-The accuray is 0.95 (95%) and out of sample error is .05(5%) 
+The accuracy is 0.95 (95%) and out of sample error is .05(5%) 
 
 
-## Final predtiction with test/validation data set
+## Final prediction with test/validation data set
 
 The random forest has less out of sample error so the following shows the prediction with random forest model on test/validation data set
 
@@ -335,7 +335,7 @@ FinalTestPred
 
 https://github.com/vvasamgit/coursera-pml/blob/gh-pages/pml-project-final.R
 
-2. The RMD file for this report is available at :
+2. The RMD file for this report is available at:
 
 https://github.com/vvasamgit/coursera-pml/blob/gh-pages/pml-project-final.Rmd
 
