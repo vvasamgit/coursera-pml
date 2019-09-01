@@ -54,7 +54,7 @@ suppressPackageStartupMessages(library(rattle))
 suppressPackageStartupMessages(library(htmltools))
 
 #Set working directory 
-workdir<-"C:\\Wrksps\\dev\\DataScienceCE\\datasciencecoursera\\PracticalMachineLearning\\Project"
+workdir<-"."
 setwd(workdir)
 
 trnsetFileName<-"pml-training.csv"
@@ -69,9 +69,9 @@ validtstDataUrl<-paste(dataUrlBase,"/",validtstsetFileName, sep="")
 
 # Download file to local fie system
 
-#download.file(trnDataUrl,trnsetFileName)
+download.file(trnDataUrl,trnsetFileName)
 
-#download.file(validtstDataUrl,validtstsetFileName)
+download.file(validtstDataUrl,validtstsetFileName)
 
 #Read the train, test/validation file contents to data frame
 
@@ -164,17 +164,20 @@ The top 5 variables (out of 51):
 
 The process followed the following steps for predicting the outcome:
 
-1) Define error rate 2) Split training data into training and test data sets 3) On the training data set pick relevant features 4) On the training set pick prediciton function 5) Apply prediction funciton on the training data set 6) Apply the prediciton on validaiton data set.
+1. Define error rate.
+2. Split training data into training and test data sets.
+3. On the training data set pick relevant features. 
+4. On the training set pick prediciton function.
+5. Apply prediction funciton on the training data set.
+6. Apply the prediciton on validaiton data set.
 
 The acceptable error rate for this prediction is less than 1 percent to make prediction 99 percentile correct. The cross validation is performed by spliting the given training data set into training/test sets. The model is created on the training set and evaluated on the test set. The cross validation process will be repeated and average of the estimated errors will be calculated. The cross validation is used for picking variables to include in a model,type of predicion to use and the parameters in the prediction function. The cross validation also compares predictors.
 
 The prediction considered the following three approaches:
+
 1. Prediction with Classification tree 
-    Gives better performance in nonlinear settings. Iteratively splits variables into groups,evaluates homogeneity  within each group and splits again if necessary
 2. Prediction with Random Forest
-    Accuracy will be good with random forest. Bootstrapping is performed at each split and multiple trees will be created to decide the final outcome. 
 3. Boosting with trees (gbm)
-    By combining the weak predictods strong predictor will be derived.
  
 
 
@@ -213,7 +216,7 @@ featurePlot(x=training[, fnTotal], y=training$classe,plot="density",
 ```
 
 
-The total_accel_forearm featurs shows better distribution compared to all other features.
+The total_accel_arm and total_accel_forearm featurs shows better distribution curve compared to all other features.
 
 The following feature plot and density plot shows ourcome classe versus top 5 predictors that recursive feature elimination process selected. 
 
@@ -237,9 +240,11 @@ featurePlot(x=training[, rfeTop5], y=training$classe,plot="density",
 
 ```
 
-The pitch_forearm feature graph also shows better distribution.
+The pitch_forearm feature graph also shows better distribution curve.
 
 ##Prediction with Classification tree
+
+The prediction with classification tree gives better performance in nonlinear settings. Iteratively splits variables into groups,evaluates homogeneity  within each group and splits again if necessary
 
 The following confusion matrix and plot shows the prediction with classification tree method.
 
@@ -260,10 +265,13 @@ fancyRpartPlot(modelCLT$finalModel)
 
 ```
 
-The accuray is 0.48 (48%) and out of sample error is .52(52%). So the out of sample rate is so high.
+The accuray is 0.48 (48%) and out of sample error is .52(52%). So the out of sample rate is so high. 
+
+The fancy plot shows the classification based on variables. 
 
 ##Prediction with Random Forest
 
+Accuracy will be good with Random Forest. Bootstrapping is performed at each split and multiple trees will be created to decide the final outcome. 
 
 The following confusion matrix and plot shows the prediction with random forest  method.
 
@@ -287,6 +295,8 @@ The accuray is 0.99 (99%) and out of sample error is .01 (1%). The out of sample
 
 ## Boosting with trees (GBM)
 
+By combining the weak predictods strong predictor will be derived.
+
 The following confusion matrix and plot shows the prediction with boosting with tree (GBM) method
 
 ```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
@@ -305,7 +315,7 @@ confMatGBM
 The accuray is 0.95 (95%) and out of sample error is .05(5%) 
 
 
-## FinalTestPred
+## Final predtiction with test/validation data set
 
 The random forest has less out of sample error so the following shows the prediction with random forest model on test/validation data set
 
@@ -319,8 +329,26 @@ FinalTestPred
 ```
 
 
-## APENDIX - Source Code 
+##References
 
+1. The R source code for this prediction can be accessed using the following GitHub URL:
+
+https://github.com/vvasamgit/coursera-pml/blob/gh-pages/pml-project-final.R
+
+2. The RMD file for this report is available at :
+
+https://github.com/vvasamgit/coursera-pml/blob/gh-pages/pml-project-final.Rmd
+
+3. This report is based on the HAR data collected from the source:
+http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har.
+
+4. Accelerometers:
+https://learn.sparkfun.com/tutorials/accelerometer-basics/all
+
+
+## APPENDIX - R Source Code 
+
+The following source code is given in the report for quick reference. 
 
 ```{r eval=FALSE,comment=""}
 
@@ -511,9 +539,4 @@ FinalTestPred
 ```
 
 
-##References
 
-This report is based on the HAR data collected from the
-source: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har.
-Accelerometers:
-https://learn.sparkfun.com/tutorials/accelerometer-basics/all
