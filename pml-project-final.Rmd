@@ -1,0 +1,519 @@
+---
+title: "Practical Machine Learning - Predict The Manner of People Excercise Activity"
+author: "Venkat Vasam"
+date: "Augist 31, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE,echo = TRUE, warning=FALSE,message=FALSE,comment=NA}
+knitr::opts_chunk$set(echo = TRUE,cache=TRUE)
+```
+
+## Overview
+
+Human Activity Recognition(HAR) measures people activity. There are several electromechanical devices (accelormeters) that provide HAR metrics by sensing either static or dynamic forces of acceleration. Gravity is a static force, and vibrations and movement are dynamic forces.
+
+This report uses weight lifting excercise data collected from accelormeters of 6 participants. The accelormeters were used on on the belt, forearm, arm, and dumbell. The participants  were asked to perform barbell lifts correctly and incorrectly in 5 different ways (set of 10 repetitions). The five different ways are: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E).
+
+The outcome this report is prediction of the manner participants did the excercise. The quality of excerice is defined as Class A is correct way doing excercies and 4 other classes are common mistakes. The age of participants is 20-28 years, with a little weight lifting experience.
+
+# Prediction Steps
+
+The prediction process uses the the following steps to predict the efficieny of HAR activity
+ 
+  Question -> Input Data ->Features ->Alogritham -> Parameters ->evaluation
+
+##Question :
+
+The question of this pediction excercise : predict one of the 5 different ways that participants's execrcise activity can be classified as based on the weight lifting excercise validation data set. 
+
+##Input Data :
+
+The input data is avaliable from the following URLs:
+
+The training data for this project is available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test/validation data is available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+
+##Exploratory Data Analysis/Features :
+
+```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library("gridExtra"))
+suppressPackageStartupMessages(library(caret))
+suppressPackageStartupMessages(library(randomForest))
+suppressPackageStartupMessages(library(RColorBrewer))
+suppressPackageStartupMessages(library(rattle))
+suppressPackageStartupMessages(library(htmltools))
+
+#Set working directory 
+workdir<-"C:\\Wrksps\\dev\\DataScienceCE\\datasciencecoursera\\PracticalMachineLearning\\Project"
+setwd(workdir)
+
+trnsetFileName<-"pml-training.csv"
+validtstsetFileName<-"pml-testing.csv"
+
+dataUrlBase<-"https://d396qusza40orc.cloudfront.net/predmachlearn"
+
+trnDataUrl<-paste(dataUrlBase,"/",trnsetFileName, sep="")
+
+validtstDataUrl<-paste(dataUrlBase,"/",validtstsetFileName, sep="")
+
+
+# Download file to local fie system
+
+#download.file(trnDataUrl,trnsetFileName)
+
+#download.file(validtstDataUrl,validtstsetFileName)
+
+#Read the train, test/validation file contents to data frame
+
+trnDataIn<-read.csv(trnsetFileName)
+
+validtstDataIn<-read.csv(validtstsetFileName)
+
+cat("The total number of rows/observations and columns/features of training data:",dim(trnDataIn)[1],dim(trnDataIn)[2],"\n")
+
+cat("The total number of rows/observations and columns/features of test/validation data:",dim(validtstDataIn)[1],dim(validtstDataIn)[2],"\n")
+
+
+vldtstFeatureNames<-names(validtstDataIn)
+
+trnFeatureNames<-names(trnDataIn)
+
+cat("Features:",trnFeatureNames)
+
+trnFeaturesOnly<-setdiff(trnFeatureNames,vldtstFeatureNames)
+
+cat("The feature in training but not in test/validation data set:",trnFeaturesOnly,"\n")
+
+vldFeatursOnly<-setdiff(vldtstFeatureNames, trnFeatureNames)
+
+cat("The feature in test/validation but not in training data set:",vldFeatursOnly,"\n")
+
+
+#roll, pitch, yaw, total, kurtosis, skewness, max,min, amplitude, variance of total acceleration , average , standard 
+#deviation , gyros_x,gyros_y,gyros_z, acceleration_X,acceleration_Y,acceleration_Z, magnetitude_x,magnetitude_y,magnetitude_z for all the accelerometer postions 
+#belt, forearm, arm, and dumbell
+
+#near zero variance
+
+nZerov <- nearZeroVar(trnDataIn)
+
+trnData1<-trnDataIn[,-nZerov]
+
+cat("After removing near zero variance features, the total number of rows/observations and columns/features of training data:",dim(trnData1)[1],dim(trnData1)[2],"\n")
+
+
+#NA values
+naPercent    <- sapply(trnData1, function(x) mean(is.na(x))) > 0.95
+trnDat2<-trnData1[,naPercent==FALSE]
+
+cat("After removing features with more NA values, the total number of rows/observations and columns/features of training data:",dim(trnDat2)[1],dim(trnDat2)[2],"\n")
+
+# Remove first 7 features specific to individuals and time stamps of excercise
+trnDat<-trnDat2[,-c(1:7)]
+
+cat("After removing features specific to individuals, the total number of rows/observations and columns/features of training data:",dim(trnDat)[1],dim(trnDat)[2],"\n")
+
+
+outFeatureName<-c('classe')
+
+trnFeatureName<-names(trnDat)
+
+predictors<-setdiff(trnFeatureName, outFeatureName)
+
+#rfe .. recursive feature elimination using rfe.. the following code is commented out becasue report generation taking long time. But while generating final report uncomment this #code.
+
+#rfCtrl <- rfeControl(functions = rfFuncs,method = "repeatedcv",repeats = 1,verbose=TRUE,allowParallel = FALSE)
+
+#trnDatProf <- rfe(trnDat[,predictors], trnDat[,outFeatureName], rfeControl = rfCtrl)
+
+#cat(trnDatProf)
+
+
+```
+
+
+The training data set has 19622 observations with total 160 features with outcome feature/variable 'classe'. The  testing/validation data set also has 20 observations with 160 features but doesn't have outcome feature/variable 'classe'. Instead of classe variable testing/validation data set has problem_id feature to identify the observation row.  Out of 160 features after taking out near zero features the remaining features/variables are 59. Out of 59 the first 7 features/variables are not that relevalnt for the predictive analysis. The size of relevant features/variables is 52 with 51 predictors and one outcome.
+
+Recursive feature selection process showed the following top 5 predictors:
+
+Outer resampling method: Cross-Validated (10 fold, repeated 1 times) 
+
+Resampling performance over subset size:
+
+ Variables Accuracy  Kappa AccuracySD  KappaSD Selected
+         4   0.9584 0.9474   0.002431 0.003081         
+         8   0.9865 0.9830   0.003561 0.004504         
+        16   0.9930 0.9912   0.001577 0.001995         
+        51   0.9964 0.9954   0.001212 0.001533        *
+
+The top 5 variables (out of 51):
+   yaw_belt, magnet_dumbbell_z, pitch_belt, magnet_dumbbell_y, pitch_forearm
+
+
+##Prediction
+
+The process followed the following steps for predicting the outcome:
+
+1) Define error rate 2) Split training data into training and test data sets 3) On the training data set pick relevant features 4) On the training set pick prediciton function 5) Apply prediction funciton on the training data set 6) Apply the prediciton on validaiton data set.
+
+The acceptable error rate for this prediction is less than 1 percent to make prediction 99 percentile correct. The cross validation is performed by spliting the given training data set into training/test sets. The model is created on the training set and evaluated on the test set. The cross validation process will be repeated and average of the estimated errors will be calculated. The cross validation is used for picking variables to include in a model,type of predicion to use and the parameters in the prediction function. The cross validation also compares predictors.
+
+The prediction considered the following three approaches:
+1. Prediction with Classification tree 
+    Gives better performance in nonlinear settings. Iteratively splits variables into groups,evaluates homogeneity  within each group and splits again if necessary
+2. Prediction with Random Forest
+    Accuracy will be good with random forest. Bootstrapping is performed at each split and multiple trees will be created to decide the final outcome. 
+3. Boosting with trees (gbm)
+    By combining the weak predictods strong predictor will be derived.
+ 
+
+
+```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
+
+inTrain<-createDataPartition(y=trnDat$classe, p=0.75,list=FALSE)
+
+training<-trnDat[inTrain,]
+
+testing<-trnDat[-inTrain,]
+
+trnames<-names(trnDat)
+
+
+```
+
+The manual observation of total predictors it seems the features with total_accel prefix for all the accelrormetres will be a good predictors. The following feature plot and density plot shows ourcome classe versus total_accel predictors. 
+
+```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
+totl<-grepl("total_accel",trnames)
+
+fnTotal<-trnames[which(totl==TRUE)]
+
+featurePlot(x=training[, fnTotal], y=training$classe,plot="pairs",auto.key = list(columns = 3))
+
+#featurePlot(x=training[, fnTotal], y=training$classe,plot="ellipse",auto.key = list(columns = 3))
+
+featurePlot(x=training[, fnTotal], y=training$classe,plot="density",
+            scales = list(x = list(relation="free"), 
+                          y = list(relation="free")), 
+            adjust = 1.5, 
+            pch = "|", 
+            layout = c(4, 1), 
+            auto.key = list(columns = 3))
+
+```
+
+
+The total_accel_forearm featurs shows better distribution compared to all other features.
+
+The following feature plot and density plot shows ourcome classe versus top 5 predictors that recursive feature elimination process selected. 
+
+```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
+rfeTop5<-c("yaw_belt", "magnet_dumbbell_z", "pitch_belt", "magnet_dumbbell_y", "pitch_forearm")
+
+#rfeTop5<-trnDatProf$variables$var[1:5]
+
+featurePlot(x=training[, rfeTop5], y=training$classe,plot="pairs",auto.key = list(columns = 5))
+
+featurePlot(x=training[, rfeTop5], y=training$classe,plot="density",
+            scales = list(x = list(relation="free"), 
+                          y = list(relation="free")), 
+            adjust = 1.5, 
+            pch = "|", 
+            layout = c(5, 1), 
+            auto.key = list(columns = 5))
+
+
+
+
+```
+
+The pitch_forearm feature graph also shows better distribution.
+
+##Prediction with Classification tree
+
+The following confusion matrix and plot shows the prediction with classification tree method.
+
+```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
+trControl <- trainControl(method="cv", number=5,verboseIter=FALSE,allowParallel = FALSE)
+
+modelCLT <- train(classe~., data=training, method="rpart", trControl=trControl)
+
+trainpred <- predict(modelCLT,newdata=testing)
+
+
+confMatCT <- confusionMatrix(testing$classe,trainpred)
+
+confMatCT
+
+fancyRpartPlot(modelCLT$finalModel)
+
+
+```
+
+The accuray is 0.48 (48%) and out of sample error is .52(52%). So the out of sample rate is so high.
+
+##Prediction with Random Forest
+
+
+The following confusion matrix and plot shows the prediction with random forest  method.
+
+```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
+
+controlRF <- trainControl(method="cv", number=3, verboseIter=FALSE,allowParallel = FALSE)
+
+modelRF <- train(classe~., data=training, method="rf", trControl=controlRF, verbose=FALSE)
+
+trainpredRF <- predict(modelRF,newdata=testing)
+
+confMatRF <- confusionMatrix(testing$classe,trainpredRF)
+
+confMatRF
+
+
+```
+
+The accuray is 0.99 (99%) and out of sample error is .01 (1%). The out of sample error rate is 1%
+
+
+## Boosting with trees (GBM)
+
+The following confusion matrix and plot shows the prediction with boosting with tree (GBM) method
+
+```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
+
+modelGBM <- train(classe~., data=training, method="gbm", trControl=controlRF, verbose=FALSE)
+
+trainpredGBM <- predict(modelGBM,newdata=testing)
+
+confMatGBM <- confusionMatrix(testing$classe,trainpredGBM)
+
+confMatGBM
+
+
+```
+
+The accuray is 0.95 (95%) and out of sample error is .05(5%) 
+
+
+## FinalTestPred
+
+The random forest has less out of sample error so the following shows the prediction with random forest model on test/validation data set
+
+```{r echo = FALSE, warning=FALSE,message=FALSE,cache=TRUE,comment=""}
+
+FinalTestPred <- predict(modelRF,newdata=validtstDataIn)
+
+FinalTestPred
+
+
+```
+
+
+## APENDIX - Source Code 
+
+
+```{r eval=FALSE,comment=""}
+
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library("gridExtra"))
+suppressPackageStartupMessages(library(caret))
+suppressPackageStartupMessages(library(randomForest))
+suppressPackageStartupMessages(library(RColorBrewer))
+suppressPackageStartupMessages(library(rattle))
+suppressPackageStartupMessages(library(htmltools))
+
+#Set working directory 
+workdir<-"C:\\Wrksps\\dev\\DataScienceCE\\datasciencecoursera\\PracticalMachineLearning\\Project"
+setwd(workdir)
+
+trnsetFileName<-"pml-training.csv"
+validtstsetFileName<-"pml-testing.csv"
+
+dataUrlBase<-"https://d396qusza40orc.cloudfront.net/predmachlearn"
+
+trnDataUrl<-paste(dataUrlBase,"/",trnsetFileName, sep="")
+
+validtstDataUrl<-paste(dataUrlBase,"/",validtstsetFileName, sep="")
+
+
+# Download file to local fie system
+
+download.file(trnDataUrl,trnsetFileName)
+
+download.file(validtstDataUrl,validtstsetFileName)
+
+#Read the train, test/validation file contents to data frame
+
+trnDataIn<-read.csv(trnsetFileName)
+
+validtstDataIn<-read.csv(validtstsetFileName)
+
+cat("The total number of rows/observations and columns/features of training data:",dim(trnDataIn)[1],dim(trnDataIn)[2],"\n")
+
+cat("The total number of rows/observations and columns/features of test/validation data:",dim(validtstDataIn)[1],dim(validtstDataIn)[2],"\n")
+
+
+vldtstFeatureNames<-names(validtstDataIn)
+
+trnFeatureNames<-names(trnDataIn)
+
+cat("Features:",trnFeatureNames)
+
+head(trnDataIn)
+
+trnFeaturesOnly<-setdiff(trnFeatureNames,vldtstFeatureNames)
+
+cat("The feature in training but not in test/validation data set:",trnFeaturesOnly,"\n")
+
+vldFeatursOnly<-setdiff(vldtstFeatureNames, trnFeatureNames)
+
+cat("The feature in test/validation but not in training data set:",vldFeatursOnly,"\n")
+
+
+#roll, pitch, yaw, total, kurtosis, skewness, max,min, amplitude, variance of total acceleration , average , standard 
+#deviation , gyros_x,gyros_y,gyros_z, acceleration_X,acceleration_Y,acceleration_Z, magnetitude_x,magnetitude_y,magnetitude_z for all the accelerometer postions 
+#belt, forearm, arm, and dumbell
+
+#near zero variance
+
+nZerov <- nearZeroVar(trnDataIn)
+
+trnData1<-trnDataIn[,-nZerov]
+
+cat("After removing near zero variance features, the total number of rows/observations and columns/features of training data:",dim(trnData1)[1],dim(trnData1)[2],"\n")
+
+
+#NA values
+naPercent    <- sapply(trnData1, function(x) mean(is.na(x))) > 0.95
+trnDat2<-trnData1[,naPercent==FALSE]
+
+cat("After removing features with more NA values, the total number of rows/observations and columns/features of training data:",dim(trnDat2)[1],dim(trnDat2)[2],"\n")
+
+# Remove first 7 features specific to individuals and time stamps of excercise
+trnDat<-trnDat2[,-c(1:7)]
+
+cat("After removing features specific to individuals, the total number of rows/observations and columns/features of training data:",dim(trnDat)[1],dim(trnDat)[2],"\n")
+
+
+outFeatureName<-c('classe')
+
+trnFeatureName<-names(trnDat)
+
+predictors<-setdiff(trnFeatureName, outFeatureName)
+
+#rfe .. recursive feature elimination using rfe.. the following code is commented out becasue report generation taking long time. But while generating final report uncomment this #code.
+
+#rfCtrl <- rfeControl(functions = rfFuncs,method = "repeatedcv",repeats = 1,verbose=TRUE,allowParallel = FALSE)
+
+#trnDatProf <- rfe(trnDat[,predictors], trnDat[,outFeatureName], rfeControl = rfCtrl)
+
+#cat(trnDatProf)
+
+#seperate training data to train and test data sets based on classe factor variable
+
+inTrain<-createDataPartition(y=trnDat$classe, p=0.75,list=FALSE)
+
+training<-trnDat[inTrain,]
+
+testing<-trnDat[-inTrain,]
+
+trnames<-names(trnDat)
+
+totl<-grepl("total_accel",trnames)
+
+fnTotal<-trnames[which(totl==TRUE)]
+
+featurePlot(x=training[, fnTotal], y=training$classe,plot="pairs",auto.key = list(columns = 3))
+
+#featurePlot(x=training[, fnTotal], y=training$classe,plot="ellipse",auto.key = list(columns = 3))
+
+featurePlot(x=training[, fnTotal], y=training$classe,plot="density",
+            scales = list(x = list(relation="free"), 
+                          y = list(relation="free")), 
+            adjust = 1.5, 
+            pch = "|", 
+            layout = c(4, 1), 
+            auto.key = list(columns = 3))
+
+rfeTop5<-c("yaw_belt", "magnet_dumbbell_z", "pitch_belt", "magnet_dumbbell_y", "pitch_forearm")
+
+#rfeTop5<-trnDatProf$variables$var[1:5]
+
+featurePlot(x=training[, rfeTop5], y=training$classe,plot="pairs",auto.key = list(columns = 5))
+
+featurePlot(x=training[, rfeTop5], y=training$classe,plot="density",
+            scales = list(x = list(relation="free"), 
+                          y = list(relation="free")), 
+            adjust = 1.5, 
+            pch = "|", 
+            layout = c(5, 1), 
+            auto.key = list(columns = 5))
+
+# Classification tree
+
+trControl <- trainControl(method="cv", number=5,verboseIter=FALSE,allowParallel = FALSE)
+
+modelCLT <- train(classe~., data=training, method="rpart", trControl=trControl)
+
+trainpred <- predict(modelCLT,newdata=testing)
+
+#qplot(trainpred, classe, data=testing, xlab="predicted", ylab="Actual")
+
+confMatCT <- confusionMatrix(testing$classe,trainpred)
+
+confMatCT
+
+fancyRpartPlot(modelCLT$finalModel)
+
+
+#Random forest
+
+controlRF <- trainControl(method="cv", number=3, verboseIter=FALSE,allowParallel = FALSE)
+
+modelRF <- train(classe~., data=training, method="rf", trControl=controlRF, verbose=FALSE)
+
+trainpredRF <- predict(modelRF,newdata=testing)
+
+confMatRF <- confusionMatrix(testing$classe,trainpredRF)
+
+confMatRF
+
+#Boosting with RBM
+modelGBM <- train(classe~., data=training, method="gbm", trControl=controlRF, verbose=FALSE)
+
+trainpredGBM <- predict(modelGBM,newdata=testing)
+
+confMatGBM <- confusionMatrix(testing$classe,trainpredGBM)
+
+confMatGBM
+
+
+#Final predtiction with validation data set
+
+FinalTestPred <- predict(modelRF,newdata=validtstDataIn)
+
+FinalTestPred
+
+
+
+```
+
+
+##References
+
+This report is based on the HAR data collected from the
+source: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har.
+Accelerometers:
+https://learn.sparkfun.com/tutorials/accelerometer-basics/all

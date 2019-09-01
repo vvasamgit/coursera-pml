@@ -1,0 +1,10 @@
+base
+dplyr
+ggplot2
+gridExtra
+lattice
+caret
+randomForest
+RColorBrewer
+rattle
+htmltools
